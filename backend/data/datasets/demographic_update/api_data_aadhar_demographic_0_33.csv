@@ -1,0 +1,35 @@
+Month,State,District,Update_Name,Update_Address,Update_DOB,Update_Gender,Update_Mobile
+2023-10,Arunachal Pradesh,Tawang,121,326,60,28,556
+2023-10,Nagaland,Kiphire,74,420,93,25,654
+2023-10,Manipur,Churachandpur,169,162,60,14,1829
+2023-10,Meghalaya,West Garo Hills,107,285,62,44,1928
+2023-10,Ladakh,Leh,172,108,36,31,1558
+2023-10,Mizoram,Champhai,154,215,29,8,858
+2023-10,Jammu and Kashmir,Kupwara,50,158,43,49,1133
+2023-10,Jharkhand,Gumla,50,356,88,24,1024
+2023-10,Odisha,Malkangiri,131,410,43,24,2232
+2023-10,Chhattisgarh,Bijapur,118,182,40,10,1297
+2023-10,Delhi,South Delhi,1461,2770,592,411,9190
+2023-10,Telangana,Hyderabad,193,448,29,2,730
+2023-10,Karnataka,Bangalore Urban,87,185,29,25,1134
+2023-10,Maharashtra,Mumbai Suburban,2456,3067,646,352,21786
+2023-10,Tamil Nadu,Chennai,221,292,86,23,1331
+2023-10,Kerala,Ernakulam,111,461,63,4,627
+2023-10,Uttar Pradesh,Lucknow,224,478,34,47,692
+2023-10,Rajasthan,Jaipur,80,376,37,44,689
+2023-10,Gujarat,Ahmedabad,198,384,33,34,1745
+2023-10,West Bengal,Kolkata,194,434,66,24,1329
+2023-10,Bihar,Patna,73,124,29,12,2245
+2023-10,Maharashtra,Pune,89,236,34,20,738
+2023-10,Maharashtra,Nagpur,119,128,60,40,839
+2023-10,Maharashtra,Thane,182,298,70,13,1002
+2023-10,Maharashtra,Nashik,136,379,50,9,1570
+2023-10,Madhya Pradesh,Indore,133,375,92,32,2420
+2023-10,Madhya Pradesh,Bhopal,161,231,97,25,1939
+2023-10,Madhya Pradesh,Gwalior,169,315,82,0,509
+2023-10,Madhya Pradesh,Jabalpur,118,132,99,3,2428
+2023-10,Gujarat,Surat,115,485,36,8,2113
+2023-10,Gujarat,Vadodara,227,205,99,39,654
+2023-10,Gujarat,Rajkot,103,420,80,38,2337
+2023-10,Punjab,Ludhiana,229,463,64,18,1762
+2023-10,Punjab,Amritsar,115,324,32,41,2229

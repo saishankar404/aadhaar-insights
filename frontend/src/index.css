@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AARI Dashboard Design System - Apple-inspired aesthetics */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Core Colors */
+    --background: 0 0% 100%;
+    --foreground: 220 15% 10%;
+
+    /* Card & Surface */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 10%;
+
+    /* Primary - Deep Blue-Black */
+    --primary: 220 15% 10%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft Gray */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 15% 10%;
+
+    /* Muted */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Accent - AARI Orange */
+    --accent: 37 98% 56%;
+    --accent-foreground: 220 15% 10%;
+
+    /* Risk Level Colors */
+    --risk-low: 142 71% 45%;
+    --risk-medium: 48 96% 53%;
+    --risk-high: 25 95% 53%;
+    --risk-critical: 0 84% 60%;
+
+    /* Status Colors */
+    --success: 142 71% 45%;
+    --warning: 48 96% 53%;
+    --error: 0 84% 60%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border & Input */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 37 98% 56%;
+
+    /* Radius */
+    --radius: 0.875rem;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 9% 46%;
+    --sidebar-primary: 220 15% 10%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 15% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 37 98% 56%;
+
+    /* Map specific */
+    --map-tooltip-bg: 0 0% 100%;
+    --map-tooltip-border: 220 13% 91%;
+  }
+
+  .dark {
+    --background: 220 15% 6%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 15% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 15% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 220 15% 10%;
+
+    --secondary: 220 14% 14%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 220 9% 60%;
+
+    --accent: 37 98% 56%;
+    --accent-foreground: 220 15% 10%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 14% 14%;
+    --input: 220 14% 14%;
+    --ring: 37 98% 56%;
+
+    --sidebar-background: 220 15% 8%;
+    --sidebar-foreground: 220 9% 60%;
+    --sidebar-primary: 37 98% 56%;
+    --sidebar-primary-foreground: 220 15% 10%;
+    --sidebar-accent: 220 14% 14%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 220 14% 14%;
+    --sidebar-ring: 37 98% 56%;
+
+    --map-tooltip-bg: 220 15% 8%;
+    --map-tooltip-border: 220 14% 14%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+/* MapLibre overrides */
+.maplibregl-popup-content {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.maplibregl-popup-tip {
+  display: none !important;
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 10px !important;
+  opacity: 0.6;
+}

@@ -1,0 +1,53 @@
+Month,State,District,Update_Fingerprint,Update_Iris,Update_Face,Child_Biometric_Updates
+2023-11,Arunachal Pradesh,Tawang,234,130,38,168
+2023-11,Nagaland,Kiphire,515,190,53,259
+2023-11,Manipur,Churachandpur,2966,1891,303,1670
+2023-11,Meghalaya,West Garo Hills,5509,1208,973,1952
+2023-11,Ladakh,Leh,2578,1598,326,1067
+2023-11,Mizoram,Champhai,3391,1627,672,1428
+2023-11,Jammu and Kashmir,Kupwara,3470,1818,638,2528
+2023-11,Jharkhand,Gumla,4587,1253,488,2274
+2023-11,Odisha,Malkangiri,4779,1388,589,2686
+2023-11,Chhattisgarh,Bijapur,3875,1601,929,2823
+2023-11,Delhi,South Delhi,4533,1204,345,1699
+2023-11,Telangana,Hyderabad,5579,1003,243,1851
+2023-11,Karnataka,Bangalore Urban,2487,1994,353,1239
+2023-11,Maharashtra,Mumbai Suburban,2665,1167,800,1023
+2023-11,Tamil Nadu,Chennai,5055,1022,993,2646
+2023-11,Kerala,Ernakulam,2510,1697,505,1440
+2023-11,Uttar Pradesh,Lucknow,2713,1471,273,2403
+2023-11,Rajasthan,Jaipur,4930,1626,437,2935
+2023-11,Gujarat,Ahmedabad,4913,1909,822,2553
+2023-11,West Bengal,Kolkata,4454,1832,749,2858
+2023-11,Bihar,Patna,5950,1217,427,2187
+2023-11,Maharashtra,Pune,5400,1627,715,1230
+2023-11,Maharashtra,Nagpur,5060,1651,672,2649
+2023-11,Maharashtra,Thane,2181,1873,906,2146
+2023-11,Maharashtra,Nashik,5451,1093,882,2951
+2023-11,Madhya Pradesh,Indore,5983,1759,922,2543
+2023-11,Madhya Pradesh,Bhopal,4625,1211,982,2654
+2023-11,Madhya Pradesh,Gwalior,4771,1305,724,2866
+2023-11,Madhya Pradesh,Jabalpur,5931,1168,974,1947
+2023-11,Gujarat,Surat,3387,1881,632,2642
+2023-11,Gujarat,Vadodara,5055,1472,778,1781
+2023-11,Gujarat,Rajkot,2667,1895,904,2381
+2023-11,Punjab,Ludhiana,2153,1581,738,2402
+2023-11,Punjab,Amritsar,4532,1184,494,2120
+2023-11,Punjab,Jalandhar,2987,1265,319,2482
+2023-11,Andhra Pradesh,Visakhapatnam,3079,1533,308,1523
+2023-11,Andhra Pradesh,Vijayawada,5945,1035,623,2254
+2023-11,Andhra Pradesh,Guntur,3873,1162,574,1377
+2023-11,Tamil Nadu,Coimbatore,2332,1045,364,1557
+2023-11,Tamil Nadu,Madurai,3306,1624,263,1369
+2023-11,Tamil Nadu,Tiruchirappalli,3680,1078,293,2954
+2023-11,Uttar Pradesh,Kanpur,2681,1460,375,1465
+2023-11,Uttar Pradesh,Ghaziabad,3367,1657,798,1146
+2023-11,Uttar Pradesh,Agra,2838,1963,875,2577
+2023-11,Uttar Pradesh,Varanasi,3880,1766,238,1945
+2023-11,Uttar Pradesh,Meerut,4502,1660,737,1972
+2023-11,Uttar Pradesh,Prayagraj,2683,1307,753,2441
+2023-11,Jharkhand,Ranchi,2342,1900,256,2849
+2023-11,Jharkhand,Jamshedpur,5758,1425,889,1446
+2023-11,Jharkhand,Dhanbad,2908,1499,900,1024
+2023-11,Chhattisgarh,Raipur,4925,1180,203,2447
+2023-11,Chhattisgarh,Bhilai,5164,1479,885,1338
