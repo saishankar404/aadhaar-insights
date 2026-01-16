@@ -294,49 +294,44 @@ We designed five domain-specific metrics to capture different aspects of Aadhaar
 | **AEPG** | Aadhaar Equity Penetration Gap | `100 - ASR` | 0-100% | Coverage gap |
 
 ```mermaid
-graph TB
-    subgraph Input[" Input Data "]
-        A["Merged DataFrame<br/>District-Month Level"]
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'inter'}}}%%
+graph LR
+    subgraph Input ["Source"]
+        A["<b>MERGED DATAFRAME</b><br/>District-Month Level"]
     end
     
-    subgraph Metrics[" Five Core Metrics "]
-        B["ASR<br/>Aadhaar Saturation Ratio<br/>(enrolments/population)×100<br/>Range: 0-150%<br/>Coverage percentage"]
-        C["UII<br/>Update Intensity Index<br/>(demo+bio updates)/enrolments<br/>Range: 0-1<br/>Update activity ratio"]
-        D["TDS<br/>Temporal Deviation Score<br/>(current_UII - rolling_mean)/rolling_std<br/>Range: -∞ to +∞<br/>Z-score anomaly detector"]
-        E["CBCG<br/>Child Biometric Compliance Gap<br/>1 - (child_bio/eligible_children)<br/>Range: 0-1<br/>Compliance deficit"]
-        F["AEPG<br/>Aadhaar Equity Penetration Gap<br/>100 - ASR<br/>Range: 0-100%<br/>Coverage gap"]
+    subgraph Logic ["METRICS ENGINE & PROCESSING"]
+        direction TB
+        M1["<b>ASR</b><br/>(enrolments/pop) × 100<br/><b>Range: 0-150%</b>"]
+        M2["<b>UII</b><br/>(demo+bio)/enrolments<br/><b>Range: 0-1</b>"]
+        M3["<b>TDS</b><br/>(UII - rolling)/std<br/><b>Range: -∞ to +∞</b>"]
+        M4["<b>CBCG</b><br/>1 - (bio/eligible)<br/><b>Range: 0-1</b>"]
+        M5["<b>AEPG</b><br/>100 - ASR<br/><b>Range: 0-100%</b>"]
+        
+        G["<b>DATA POST-PROCESSING</b><br/>Sort, Rolling Avg, Clip, Handle NaN"]
+        
+        M1 & M2 & M3 & M4 & M5 ==> G
     end
     
-    subgraph Processing[" Data Processing "]
-        G["Sort by district, month<br/>Calculate rolling averages<br/>Handle inf/NaN values<br/>Apply clipping bounds"]
+    subgraph Output ["Target"]
+        H["<b>ENHANCED DATAFRAME</b><br/>Ready for Risk Scoring"]
     end
     
-    subgraph Output[" Output "]
-        H["Enhanced DataFrame<br/>All 5 metrics calculated<br/>Ready for risk scoring"]
-    end
+    A ==> M1 & M2 & M3 & M4 & M5
+    G ==> H
     
-    A --> B
-    A --> C
-    A --> D
-    A --> E
-    A --> F
-    
-    B --> G
-    C --> G
-    D --> G
-    E --> G
-    F --> G
-    
-    G --> H
-    
-    style A fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
-    style B fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    style C fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
-    style D fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
-    style E fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    style F fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000
-    style G fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#000
-    style H fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+    %% High-Contrast Styling
+    style A fill:#BBDEFB,stroke:#0D47A1,stroke-width:3px,color:#000
+    style M1 fill:#FFE0B2,stroke:#E65100,stroke-width:2px,color:#000
+    style M2 fill:#E1BEE7,stroke:#4A148C,stroke-width:2px,color:#000
+    style M3 fill:#C8E6C9,stroke:#1B5E20,stroke-width:2px,color:#000
+    style M4 fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+    style M5 fill:#FFCDD2,stroke:#B71C1C,stroke-width:2px,color:#000
+    style G fill:#D1C4E9,stroke:#311B92,stroke-width:3px,color:#000
+    style H fill:#A5D6A7,stroke:#1B5E20,stroke-width:3px,color:#000
+
+    %% Link Styling
+    linkStyle default stroke:#333,stroke-width:2px;
 ```
 
 **Implementation**:
@@ -955,46 +950,41 @@ class DistrictMetric(Base):
 ### 5.2 Data Flow
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#f4f4f4', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#f4f4f4'}}}%%
-flowchart LR
-    subgraph RawData ["Source Data"]
-        direction TB
-        A[/"CSV Files (UIDAI)"/];
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'inter', 'edgeLabelBackground':'#ffffff'}}}%%
+flowchart TD
+    subgraph RawData ["<b>1. SOURCE DATA</b>"]
+        A[/"<b>CSV DATASET</b><br/>(UIDAI Official)"/]:::source
     end
 
-    subgraph Pipeline ["Processing Pipeline"]
+    A ==>|Ingest| B
+
+    subgraph Pipeline ["<b>2. PROCESSING PIPELINE (PYTHON)</b>"]
         direction TB
-        B["DataLoader\n(Load & Concat)"] --> C["MetricEngine\n(ASR, UII, TDS, etc.)"];
-        C --> D["AnomalyDetector\n(Isolation Forest)"];
+        B["<b>DataLoader</b><br/>(Normalizing & Concat)"]:::process ==> C["<b>MetricEngine</b><br/>(Feature Engineering)"]:::process
+        C ==> D["<b>AnomalyDetector</b><br/>(Isolation Forest)"]:::process
     end
 
-    subgraph Storage ["Persistence"]
-        direction TB
-        E[("SQLite DB\n(district_metrics)")];
+    D ==>|Store Scores| E
+
+    subgraph Storage ["<b>3. PERSISTENCE</b>"]
+        E[("<b>SQLite DB</b><br/>(district_metrics)")]:::db
     end
 
-    subgraph App ["Application Layer"]
+    E -.->|Query| F
+
+    subgraph App ["<b>4. APPLICATION LAYER</b>"]
         direction TB
-        F["FastAPI REST API"] --> G("React Frontend\n(MapLibre + Dashboards)");
+        F["<b>FastAPI</b><br/>(REST Endpoints)"]:::app ==> G("<b>React UI</b><br/>(MapLibre + Shadcn)"):::app
     end
 
-    %% Main Flow Connections
-    A =="Ingest"==> B;
-    D =="Store Scores"==> E;
-    E --"Query"--> F;
+    %% High-Contrast Styling
+    classDef source fill:#BBDEFB,stroke:#0D47A1,stroke-width:3px,color:#0D47A1;
+    classDef process fill:#F3E5F5,stroke:#4A148C,stroke-width:3px,color:#4A148C;
+    classDef db fill:#FFF3E0,stroke:#E65100,stroke-width:3px,color:#E65100,rx:5,ry:5;
+    classDef app fill:#E8F5E9,stroke:#1B5E20,stroke-width:3px,color:#1B5E20;
 
-    %% Styling
-    classDef source fill:#e1f5fe,stroke:#0288d1,stroke-width:1px,color:#01579b;
-    classDef process fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px,color:#4a148c;
-    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:1px,color:#bf360c,rx:5,ry:5;
-    classDef app fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px,color:#1b5e20;
-
-    class A source;
-    class B,C,D process;
-    class E db;
-    class F,G app;
-
-
+    %% Link Styling
+    linkStyle default stroke:#333,stroke-width:2px;
 ```  
 
 ---
