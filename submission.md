@@ -211,7 +211,51 @@ return df
 
 ### 3.2 Data Preprocessing
 
-  
+  ```mermaid
+graph TB
+    subgraph Input[" Input DataFrames "]
+        A["enrol_df<br/>age_0_5, age_5_17<br/>age_18_greater, date"]
+        B["demo_df<br/>demo_age_5_17<br/>demo_age_17_"]
+        C["bio_df<br/>bio_age_5_17<br/>bio_age_17_"]
+    end
+    
+    subgraph Process[" MetricEngine.calculate_metrics "]
+        D["Standardize Dates<br/>date → month (YYYY-MM)"]
+        E["Aggregate Enrollments<br/>GROUP BY state, district, month<br/>SUM age groups"]
+        F["Aggregate Demographics<br/>GROUP BY state, district, month<br/>SUM demo updates"]
+        G["Aggregate Biometrics<br/>GROUP BY state, district, month<br/>SUM bio updates"]
+    end
+    
+    subgraph Calcs[" Calculations "]
+        H["total_enrolments =<br/>age_0_5 + age_5_17<br/>+ age_18_greater"]
+        I["total_demo_updates =<br/>demo_age_5_17<br/>+ demo_age_17_"]
+        J["total_bio_updates =<br/>bio_age_5_17<br/>+ bio_age_17_"]
+    end
+    
+    subgraph Output[" Output "]
+        K["Merged DataFrame<br/>District-Month Level<br/>All metrics + totals"]
+    end
+    
+    A --> D --> E --> H
+    B --> F --> I
+    C --> G --> J
+    
+    H --> K
+    I --> K
+    J --> K
+    
+    style A fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    style B fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    style C fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    style D fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style E fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style F fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style G fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style H fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style I fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style J fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style K fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+```
 
 **Date Standardization**: Unified date formats across datasets to YYYY-MM for monthly aggregation.
 
@@ -319,10 +363,7 @@ return merged
 
 ### 3.3 Metric Calculation Framework
 
-  
-
-### 2.3 Domain-Specific Metrics
-
+Domain-Specific Metrics:
 We designed five domain-specific metrics to capture different aspects of Aadhaar ecosystem health:
 
 | Metric | Full Name | Formula | Range | Interpretation |
@@ -332,6 +373,52 @@ We designed five domain-specific metrics to capture different aspects of Aadhaar
 | **TDS** | Temporal Deviation Score | `(current_UII - rolling_mean) / rolling_std` | -∞ to +∞ | Z-score anomaly |
 | **CBCG** | Child Biometric Compliance Gap | `1 - (child_bio_updates / eligible_children)` | 0-1 | Compliance deficit |
 | **AEPG** | Aadhaar Equity Penetration Gap | `100 - ASR` | 0-100% | Coverage gap |
+
+```mermaid
+graph TB
+    subgraph Input[" Input Data "]
+        A["Merged DataFrame<br/>District-Month Level"]
+    end
+    
+    subgraph Metrics[" Five Core Metrics "]
+        B["ASR<br/>Aadhaar Saturation Ratio<br/>(enrolments/population)×100<br/>Range: 0-150%<br/>Coverage percentage"]
+        C["UII<br/>Update Intensity Index<br/>(demo+bio updates)/enrolments<br/>Range: 0-1<br/>Update activity ratio"]
+        D["TDS<br/>Temporal Deviation Score<br/>(current_UII - rolling_mean)/rolling_std<br/>Range: -∞ to +∞<br/>Z-score anomaly detector"]
+        E["CBCG<br/>Child Biometric Compliance Gap<br/>1 - (child_bio/eligible_children)<br/>Range: 0-1<br/>Compliance deficit"]
+        F["AEPG<br/>Aadhaar Equity Penetration Gap<br/>100 - ASR<br/>Range: 0-100%<br/>Coverage gap"]
+    end
+    
+    subgraph Processing[" Data Processing "]
+        G["Sort by district, month<br/>Calculate rolling averages<br/>Handle inf/NaN values<br/>Apply clipping bounds"]
+    end
+    
+    subgraph Output[" Output "]
+        H["Enhanced DataFrame<br/>All 5 metrics calculated<br/>Ready for risk scoring"]
+    end
+    
+    A --> B
+    A --> C
+    A --> D
+    A --> E
+    A --> F
+    
+    B --> G
+    C --> G
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H
+    
+    style A fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    style B fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style C fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style D fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style E fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    style F fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000
+    style G fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style H fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+```
 
 **Implementation**:
 
@@ -430,6 +517,59 @@ We implemented **Isolation Forest**, an unsupervised anomaly detection algorithm
 - Efficient for large datasets → O(n log n) complexity
 
 - Interpretable → anomaly scores directly relate to isolation depth
+
+```mermaid
+graph TB
+    subgraph Algorithm[" Isolation Forest Algorithm "]
+        A["Unsupervised ML<br/>No labeled data needed<br/>O(n log n) complexity<br/>contamination=5%"]
+    end
+    
+    subgraph Input[" Input Features "]
+        B["5 Metrics<br/>ASR, UII, TDS<br/>CBCG, AEPG"]
+    end
+    
+    subgraph Training[" Model Training "]
+        C["1. Clean & fillna(0)<br/>2. Fit IsolationForest<br/>3. Get decision_function scores<br/>4. Parallel processing (n_jobs=-1)"]
+    end
+    
+    subgraph Scoring[" Risk Score Calculation "]
+        D["Normalize to 0-100<br/>Formula: (max-score)/(max-min)×100<br/>Lower raw score → Higher risk<br/>Inverted for interpretability"]
+    end
+    
+    subgraph Categories[" Risk Categorization "]
+        E["Low: 0-25<br/>Normal monitoring"]
+        F["Medium: 25-50<br/>Watch closely"]
+        G["High: 50-80<br/>Investigation needed"]
+        H["Priority: 80-100<br/>Immediate action"]
+    end
+    
+    subgraph Output[" Output "]
+        I["risk_scores (0-100)<br/>risk_levels<br/>(Low/Medium/High/Priority)"]
+    end
+    
+    B --> C
+    A --> C
+    C --> D
+    D --> E
+    D --> F
+    D --> G
+    D --> H
+    E --> I
+    F --> I
+    G --> I
+    H --> I
+    
+    style A fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    style B fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style C fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style D fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style E fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+    style F fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    style G fill:#ffccbc,stroke:#e64a19,stroke-width:2px,color:#000
+    style H fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000
+    style I fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#000
+```
+
 
   
 
@@ -592,7 +732,9 @@ Our analysis of 4.9 million records across 700+ districts revealed:
 
 #### Visualization 1: Interactive India Map
 
-  
+<img width="1280" height="746" alt="image" src="https://github.com/user-attachments/assets/74de5c58-b431-4bd4-bae4-b12bef44cbf9" />
+
+
 
 **Technology**: MapLibre GL JS with React
 
@@ -716,7 +858,8 @@ return colors[riskLevel] || colors['Low'];
 
 #### Visualization 2: National KPI Dashboard
 
-  
+  <img width="1280" height="743" alt="image" src="https://github.com/user-attachments/assets/f50d9f84-214b-42fd-aeac-b61ec1f97b4c" />
+
 
 **Metrics Displayed**:
 
@@ -802,6 +945,8 @@ value={summary.high_risk_districts}
 
 #### Visualization 3: District Detail Panel
 
+<img width="1424" height="995" alt="image" src="https://github.com/user-attachments/assets/0c1fee4d-c4aa-484f-8fca-4343d29897df" />
+
   
 
 **Information Displayed**:
@@ -818,7 +963,8 @@ value={summary.high_risk_districts}
 
 #### Visualization 4: Risk Analysis Table
 
-  
+  <img width="1280" height="891" alt="image" src="https://github.com/user-attachments/assets/935dd402-3352-4419-a5fe-ac1284220e6b" />
+
 
 **Features**:
 
@@ -830,7 +976,47 @@ value={summary.high_risk_districts}
 
 - CSV export functionality
 
-  
+
+#### Visualization 5: Temporal Trends Chart
+
+<img width="1710" height="714" alt="image" src="https://github.com/user-attachments/assets/c7577f97-f41a-456b-9f37-15edab230def" />
+
+
+**Features**:
+
+- Dual-Metric Overlay: Simultaneous visualization of Enrolments and Updates for correlation analysis.
+- Event Annotation: Automated vertical "Reference Lines" mapping policy changes or systemic events directly onto the timeline.
+- Interactive Tooltips: Hover-activated data cards providing precise monthly counts and percentage shifts.
+- Monotone Smoothing: High-fidelity SVG paths with monotone easing for clear trend identification across 12+ month cycles.
+- Dynamic Legends: One-click filtering to isolate specific transaction types for focused auditing.
+- Responsive Easing: Fluid glassmorphic container that adapts to any screen size while maintaining data legibility.
+
+#### Visualization 6: Inclusion & Equity Dashboard
+
+<img width="1280" height="818" alt="image" src="https://github.com/user-attachments/assets/1cd84487-583e-4aee-993b-5566fa7ff690" />
+
+
+**Features**:
+
+- Bifurcated Penetration Metrics: Split visualization of enrolment saturation across Rural vs. Urban demographics.
+- Dynamic Stat Cards: High-impact glassmorphic cards displaying percentage-based coverage at a glance.
+- Regional Equity Mapping: Identification of "Saturation Gaps" where rural infrastructure lags behind urban centers.
+- Population Sync: Integration with census data to calculate accurate per-capita saturation ratios.
+
+
+#### Visualization 7: Admin System Logs
+
+<img width="1411" height="753" alt="image" src="https://github.com/user-attachments/assets/6e3420f2-d4dd-4900-932d-cfab94e5f5ff" />
+
+**Features**:
+
+- Multi-Level Event Filtering: Color-coded badges for categorization of Success, Warning, Error, and Operational events.
+- Diagnostic Drill-Down: Monospaced technical detail fields for auditing model inference times and API gateway responses.
+- Live Activity Pulse: Real-time status indicator showing system heartbeat and data ingestion health.
+- Categorized Audit Trail: Segregated logs for Data Ingestion, Model Inference, System Health, and User Actions.
+- Infinite Scroll Feed: Performance-optimized activity feed with backdrop-blur styling for persistent monitoring.
+
+
 
 ### 4.3 API Architecture
 
@@ -838,7 +1024,62 @@ value={summary.high_risk_districts}
 
 RESTful API built with FastAPI serving the React frontend:
 
-  
+```mermaid
+graph TB
+    subgraph Frontend[" Frontend Layer "]
+        A["React Application"]
+    end
+    
+    subgraph API[" FastAPI Router "]
+        C["GET /national/summary"]
+        D["GET /map"]
+        E["GET /risk/top"]
+    end
+    
+    subgraph Logic[" Business Logic "]
+        J["National Summary<br/>SUM, AVG, COUNT"]
+        K["Map Data Query<br/>Filter by month"]
+        L["Top Risk Districts<br/>ORDER BY risk_score"]
+    end
+    
+    subgraph Data[" Database Layer "]
+        F["SQLAlchemy ORM"]
+        G[("Database")]
+        H["DistrictMetric Model<br/>district, state, risk_score<br/>risk_level, asr, uii, tds<br/>aepg, cbcg, month"]
+    end
+    
+    A -->|HTTP GET| C
+    A -->|HTTP GET| D
+    A -->|HTTP GET| E
+    
+    C --> J
+    D --> K
+    E --> L
+    
+    J --> F
+    K --> F
+    L --> F
+    
+    F -->|Session| G
+    F -->|Uses| H
+    
+    C -->|JSON| A
+    D -->|JSON| A
+    E -->|JSON| A
+    
+    style A fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    style C fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style D fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style E fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style J fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style K fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style L fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style F fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style G fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style H fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+```
+
+
 
 ```python
 
@@ -950,10 +1191,35 @@ return db.query(DistrictMetric)\
 
 ```
 
+
+
   
 
 ### 4.4 Database Schema
 
+
+```mermaid
+graph LR
+    subgraph Model[" DistrictMetric Model "]
+        A["Primary & Indexes<br/>id, state, district, month"]
+        B["Raw Data<br/>population_estimate<br/>total_enrolments"]
+        C["Calculated Metrics<br/>asr, uii, tds<br/>cbcg, aepg"]
+        D["ML Output<br/>risk_score (0-100)<br/>risk_level"]
+    end
+    
+    E[("district_metrics<br/>table")]
+    
+    A --> E
+    B --> E
+    C --> E
+    D --> E
+    
+    style A fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style B fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style C fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style D fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    style E fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000
+```
   
 
 ```python
