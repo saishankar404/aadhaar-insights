@@ -138,75 +138,40 @@ Multiple CSV files per dataset were loaded and concatenated into unified DataFra
   
 
 ```python
-
 import pandas as pd
-
 import numpy as np
-
 import glob
-
 import os
 
-  
-
 class DataLoader:
+    @staticmethod
+    def load_dataset(folder_path: str) -> pd.DataFrame:
+        """Loads all CSVs in a directory and concatenates them."""
+        all_files = glob.glob(os.path.join(folder_path, "*.csv"))
+        if not all_files:
+            print(f"Warning: No CSV files found in {folder_path}")
+            return pd.DataFrame()
 
-@staticmethod
+        df_list = []
+        for filename in all_files:
+            try:
+                df = pd.read_csv(filename)
+                df_list.append(df)
+            except Exception as e:
+                print(f"Error reading {filename}: {e}")
 
-def load_dataset(folder_path: str) -> pd.DataFrame:
+        full_df = pd.concat(df_list, ignore_index=True)
+        return DataLoader.normalize_columns(full_df)
 
-"""Loads all CSVs in a directory and concatenates them."""
-
-all_files = glob.glob(os.path.join(folder_path, "*.csv"))
-
-if not all_files:
-
-print(f"Warning: No CSV files found in {folder_path}")
-
-return pd.DataFrame()
-
-  
-
-df_list = []
-
-for filename in all_files:
-
-try:
-
-df = pd.read_csv(filename)
-
-df_list.append(df)
-
-except Exception as e:
-
-print(f"Error reading {filename}: {e}")
-
-  
-
-full_df = pd.concat(df_list, ignore_index=True)
-
-return DataLoader.normalize_columns(full_df)
-
-  
-
-@staticmethod
-
-def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-
-"""Standardizes column names to snake_case."""
-
-df.columns = (df.columns.str.strip()
-
-.str.lower()
-
-.str.replace(' ', '_')
-
-.str.replace('-', '_'))
-
-return df
-
+    @staticmethod
+    def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+        """Standardizes column names to snake_case."""
+        df.columns = (df.columns.str.strip()
+                      .str.lower()
+                      .str.replace(' ', '_')
+                      .str.replace('-', '_'))
+        return df
 ```
-
   
 
 ### 3.2 Data Preprocessing
@@ -266,97 +231,51 @@ graph TB
   
 
 ```python
-
 class MetricEngine:
-
-@staticmethod
-
-def calculate_metrics(enrol_df, demo_df, bio_df):
-
-"""Merge datasets and compute core risk metrics."""
-
-  
-
-# Standardize date to 'month' (YYYY-MM format)
-
-if 'date' in enrol_df.columns:
-
-enrol_df['month'] = pd.to_datetime(enrol_df['date'],
-
-format='%d-%m-%Y').dt.to_period('M')
-
-  
-
-# Aggregate enrollment data to district-month level
-
-base_df = enrol_df.groupby(['state', 'district', 'month']).agg({
-
-'age_0_5': 'sum',
-
-'age_5_17': 'sum',
-
-'age_18_greater': 'sum'
-
-}).reset_index()
-
-  
-
-# Calculate total enrollments
-
-base_df['total_enrolments'] = (base_df['age_0_5'] +
-
-base_df['age_5_17'] +
-
-base_df['age_18_greater'])
-
-  
-
-# Aggregate demographic updates
-
-demo_agg = demo_df.groupby(['state', 'district', 'month']).agg({
-
-'demo_age_5_17': 'sum',
-
-'demo_age_17_': 'sum'
-
-}).reset_index()
-
-demo_agg['total_demo_updates'] = (demo_agg['demo_age_5_17'] +
-
-demo_agg['demo_age_17_'])
-
-  
-
-# Aggregate biometric updates
-
-bio_agg = bio_df.groupby(['state', 'district', 'month']).agg({
-
-'bio_age_5_17': 'sum',
-
-'bio_age_17_': 'sum'
-
-}).reset_index()
-
-bio_agg['total_bio_updates'] = (bio_agg['bio_age_5_17'] +
-
-bio_agg['bio_age_17_'])
-
-  
-
-# Merge all datasets
-
-merged = pd.merge(base_df, demo_agg,
-
-on=['state', 'district', 'month'], how='left').fillna(0)
-
-merged = pd.merge(merged, bio_agg,
-
-on=['state', 'district', 'month'], how='left').fillna(0)
-
-  
-
-return merged
-
+    @staticmethod
+    def calculate_metrics(enrol_df, demo_df, bio_df):
+        """Merge datasets and compute core risk metrics."""
+        
+        # Standardize date to 'month' (YYYY-MM format)
+        if 'date' in enrol_df.columns:
+            enrol_df['month'] = pd.to_datetime(enrol_df['date'], 
+                                               format='%d-%m-%Y').dt.to_period('M')
+        
+        # Aggregate enrollment data to district-month level
+        base_df = enrol_df.groupby(['state', 'district', 'month']).agg({
+            'age_0_5': 'sum',
+            'age_5_17': 'sum',
+            'age_18_greater': 'sum'
+        }).reset_index()
+        
+        # Calculate total enrollments
+        base_df['total_enrolments'] = (base_df['age_0_5'] + 
+                                       base_df['age_5_17'] + 
+                                       base_df['age_18_greater'])
+        
+        # Aggregate demographic updates
+        demo_agg = demo_df.groupby(['state', 'district', 'month']).agg({
+            'demo_age_5_17': 'sum',
+            'demo_age_17_': 'sum'
+        }).reset_index()
+        demo_agg['total_demo_updates'] = (demo_agg['demo_age_5_17'] + 
+                                          demo_agg['demo_age_17_'])
+        
+        # Aggregate biometric updates
+        bio_agg = bio_df.groupby(['state', 'district', 'month']).agg({
+            'bio_age_5_17': 'sum',
+            'bio_age_17_': 'sum'
+        }).reset_index()
+        bio_agg['total_bio_updates'] = (bio_agg['bio_age_5_17'] + 
+                                        bio_agg['bio_age_17_'])
+        
+        # Merge all datasets
+        merged = pd.merge(base_df, demo_agg, 
+                          on=['state', 'district', 'month'], how='left').fillna(0)
+        merged = pd.merge(merged, bio_agg, 
+                          on=['state', 'district', 'month'], how='left').fillna(0)
+        
+        return merged
 ```
 
   
@@ -425,79 +344,42 @@ graph TB
   
 
 ```python
-
 def calculate_derived_metrics(merged_df):
-
-"""Calculate all five core metrics."""
-
-  
-
-# ASR - Aadhaar Saturation Ratio
-
-# Using total_enrolments as proxy for coverage
-
-merged_df['asr'] = (merged_df['total_enrolments'] /
-
-merged_df['population_estimate']) * 100
-
-merged_df['asr'] = merged_df['asr'].clip(0, 150) # Cap at 150%
-
-  
-
-# UII - Update Intensity Index
-
-merged_df['uii'] = ((merged_df['total_demo_updates'] +
-
-merged_df['total_bio_updates']) /
-
-merged_df['total_enrolments'])
-
-merged_df['uii'] = merged_df['uii'].replace([np.inf, -np.inf], 0).fillna(0)
-
-  
-
-# TDS - Temporal Deviation Score (Z-score of UII vs 3-month rolling average)
-
-merged_df = merged_df.sort_values(by=['district', 'month'])
-
-rolling_mean = merged_df.groupby('district')['uii'].transform(
-
-lambda x: x.rolling(3, min_periods=1).mean()
-
-)
-
-rolling_std = merged_df.groupby('district')['uii'].transform(
-
-lambda x: x.rolling(3, min_periods=1).std()
-
-)
-
-merged_df['tds'] = ((merged_df['uii'] - rolling_mean) / rolling_std).fillna(0)
-
-merged_df['tds'] = merged_df['tds'].replace([np.inf, -np.inf], 0)
-
-  
-
-# CBCG - Child Biometric Compliance Gap
-
-eligible_children = merged_df['age_5_17'] # Proxy for eligible children
-
-merged_df['cbcg'] = (1 - (merged_df['bio_age_5_17'] / eligible_children))
-
-merged_df['cbcg'] = merged_df['cbcg'].clip(0, 1).fillna(0)
-
-  
-
-# AEPG - Aadhaar Equity Penetration Gap
-
-merged_df['aepg'] = (100 - merged_df['asr']).clip(0, 100)
-
-  
-
-return merged_df
-
+    """Calculate all five core metrics."""
+    
+    # ASR - Aadhaar Saturation Ratio
+    # Using total_enrolments as proxy for coverage
+    merged_df['asr'] = (merged_df['total_enrolments'] / 
+                        merged_df['population_estimate']) * 100
+    merged_df['asr'] = merged_df['asr'].clip(0, 150) # Cap at 150%
+    
+    # UII - Update Intensity Index
+    merged_df['uii'] = ((merged_df['total_demo_updates'] + 
+                         merged_df['total_bio_updates']) / 
+                        merged_df['total_enrolments'])
+    merged_df['uii'] = merged_df['uii'].replace([np.inf, -np.inf], 0).fillna(0)
+    
+    # TDS - Temporal Deviation Score (Z-score of UII vs 3-month rolling average)
+    merged_df = merged_df.sort_values(by=['district', 'month'])
+    rolling_mean = merged_df.groupby('district')['uii'].transform(
+        lambda x: x.rolling(3, min_periods=1).mean()
+    )
+    rolling_std = merged_df.groupby('district')['uii'].transform(
+        lambda x: x.rolling(3, min_periods=1).std()
+    )
+    merged_df['tds'] = ((merged_df['uii'] - rolling_mean) / rolling_std).fillna(0)
+    merged_df['tds'] = merged_df['tds'].replace([np.inf, -np.inf], 0)
+    
+    # CBCG - Child Biometric Compliance Gap
+    eligible_children = merged_df['age_5_17'] # Proxy for eligible children
+    merged_df['cbcg'] = (1 - (merged_df['bio_age_5_17'] / eligible_children))
+    merged_df['cbcg'] = merged_df['cbcg'].clip(0, 1).fillna(0)
+    
+    # AEPG - Aadhaar Equity Penetration Gap
+    merged_df['aepg'] = (100 - merged_df['asr']).clip(0, 100)
+    
+    return merged_df
 ```
-
   
 
 ### 3.4 Machine Learning: Anomaly Detection
@@ -574,118 +456,56 @@ graph TB
   
 
 ```python
-
 from sklearn.ensemble import IsolationForest
-
 from typing import Tuple
 
-  
-
 class AnomalyDetector:
+    def __init__(self, contamination=0.05):
+        """
+        Initialize Isolation Forest for anomaly detection.
+        
+        Args:
+            contamination: Expected proportion of outliers (default 5%)
+        """
+        self.model = IsolationForest(
+            contamination=contamination,
+            random_state=42,
+            n_jobs=-1  # Parallel processing
+        )
+        self.features = ['asr', 'uii', 'tds', 'cbcg', 'aepg']
 
-def __init__(self, contamination=0.05):
+    def train_and_predict(self, df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
+        """Train model and return risk scores (0-100) and risk levels."""
+        # Select and clean features
+        X = df[self.features].fillna(0)
+        
+        # Fit model and get anomaly scores
+        self.model.fit(X)
+        raw_scores = self.model.decision_function(X)
+        
+        # Normalize scores to 0-100 scale (higher = riskier)
+        # Isolation Forest: lower raw score = more anomalous
+        min_score, max_score = raw_scores.min(), raw_scores.max()
+        
+        if max_score == min_score:
+            risk_scores = np.zeros(len(raw_scores))
+        else:
+            risk_scores = ((max_score - raw_scores) / (max_score - min_score)) * 100
+        
+        risk_levels = self.categorize_risk(risk_scores)
+        return risk_scores, risk_levels
 
-"""
-
-Initialize Isolation Forest for anomaly detection.
-
-  
-
-Args:
-
-contamination: Expected proportion of outliers (default 5%)
-
-"""
-
-self.model = IsolationForest(
-
-contamination=contamination,
-
-random_state=42,
-
-n_jobs=-1 # Parallel processing
-
-)
-
-self.features = ['asr', 'uii', 'tds', 'cbcg', 'aepg']
-
-  
-
-def train_and_predict(self, df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-
-"""
-
-Train model and return risk scores (0-100) and risk levels.
-
-"""
-
-# Select and clean features
-
-X = df[self.features].fillna(0)
-
-  
-
-# Fit model and get anomaly scores
-
-self.model.fit(X)
-
-raw_scores = self.model.decision_function(X)
-
-  
-
-# Normalize scores to 0-100 scale (higher = riskier)
-
-# Isolation Forest: lower raw score = more anomalous
-
-# We invert: (max - x) / (max - min) * 100
-
-min_score = raw_scores.min()
-
-max_score = raw_scores.max()
-
-  
-
-if max_score == min_score:
-
-risk_scores = np.zeros(len(raw_scores))
-
-else:
-
-risk_scores = ((max_score - raw_scores) /
-
-(max_score - min_score)) * 100
-
-  
-
-risk_levels = self.categorize_risk(risk_scores)
-
-return risk_scores, risk_levels
-
-  
-
-def categorize_risk(self, scores: np.ndarray) -> np.ndarray:
-
-"""Map 0-100 scores to categorical risk levels."""
-
-conditions = [
-
-(scores <= 25), # Low Risk
-
-(scores > 25) & (scores <= 50), # Medium Risk
-
-(scores > 50) & (scores <= 80), # High Risk
-
-(scores > 80) # Priority Risk
-
-]
-
-choices = ['Low', 'Medium', 'High', 'Priority']
-
-return np.select(conditions, choices, default='Low')
-
+    def categorize_risk(self, scores: np.ndarray) -> np.ndarray:
+        """Map 0-100 scores to categorical risk levels."""
+        conditions = [
+            (scores <= 25),                  # Low Risk
+            (scores > 25) & (scores <= 50),  # Medium Risk
+            (scores > 50) & (scores <= 80),  # High Risk
+            (scores > 80)                    # Priority Risk
+        ]
+        choices = ['Low', 'Medium', 'High', 'Priority']
+        return np.select(conditions, choices, default='Low')
 ```
-
-  
 
 **Risk Level Thresholds**:
 
@@ -755,106 +575,57 @@ Our analysis of 4.9 million records across 700+ districts revealed:
   
 
 ```typescript
-
 // Map Component Implementation (TypeScript/React)
-
 import maplibregl from 'maplibre-gl';
-
 import { useEffect, useRef } from 'react';
 
-  
-
 export function IndiaMap({ districtsData, onDistrictSelect }) {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<maplibregl.Map | null>(null);
 
-const mapContainer = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!mapContainer.current) return;
 
-const map = useRef<maplibregl.Map | null>(null);
+    // Initialize map centered on India
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+      center: [78.9629, 22.5937], // Center of India
+      zoom: 4.5,
+      maxZoom: 10,
+      minZoom: 4
+    });
 
-  
+    // Add district markers
+    districtsData.forEach((district) => {
+      const color = getRiskColor(district.risk_level);
 
-useEffect(() => {
+      const marker = new maplibregl.Marker({ color })
+        .setLngLat([district.longitude, district.latitude])
+        .addTo(map.current!);
 
-if (!mapContainer.current) return;
+      marker.getElement().addEventListener('click', () => {
+        onDistrictSelect(district);
+      });
+    });
 
-  
+    return () => map.current?.remove(); // Cleanup on unmount
+  }, [districtsData]);
 
-// Initialize map centered on India
-
-map.current = new maplibregl.Map({
-
-container: mapContainer.current,
-
-style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-
-center: [78.9629, 22.5937], // Center of India
-
-zoom: 4.5,
-
-maxZoom: 10,
-
-minZoom: 4
-
-});
-
-  
-
-// Add district markers
-
-districtsData.forEach((district) => {
-
-const color = getRiskColor(district.risk_level);
-
-  
-
-const marker = new maplibregl.Marker({ color })
-
-.setLngLat([district.longitude, district.latitude])
-
-.addTo(map.current);
-
-  
-
-marker.getElement().addEventListener('click', () => {
-
-onDistrictSelect(district);
-
-});
-
-});
-
-}, [districtsData]);
-
-  
-
-return <div ref={mapContainer} className="w-full h-full" />;
-
+  return <div ref={mapContainer} className="w-full h-full" />;
 }
-
-  
 
 // Risk level to color mapping
-
 function getRiskColor(riskLevel: string): string {
-
-const colors = {
-
-'Low': '#22c55e', // Green
-
-'Medium': '#f59e0b', // Amber
-
-'High': '#f97316', // Orange
-
-'Priority': '#ef4444' // Red
-
-};
-
-return colors[riskLevel] || colors['Low'];
-
+  const colors: Record<string, string> = {
+    'Low':      '#22c55e', // Green
+    'Medium':   '#f59e0b', // Amber
+    'High':     '#f97316', // Orange
+    'Priority': '#ef4444' // Red
+  };
+  return colors[riskLevel] || colors['Low'];
 }
-
 ```
-
-  
 
 #### Visualization 2: National KPI Dashboard
 
@@ -874,74 +645,39 @@ return colors[riskLevel] || colors['Low'];
   
 
 ```typescript
-
 // KPI Overlay Component
-
 interface NationalSummary {
-
-total_enrolments: number;
-
-average_saturation: number;
-
-national_risk_index: number;
-
-high_risk_districts: number;
-
+  total_enrolments: number;
+  average_saturation: number;
+  national_risk_index: number;
+  high_risk_districts: number;
 }
-
-  
 
 export function KPIOverlay({ summary }: { summary: NationalSummary }) {
-
-return (
-
-<div className="absolute bottom-4 left-4 bg-white/95 p-4 rounded-lg shadow">
-
-<div className="grid grid-cols-2 gap-4">
-
-<KPICard
-
-label="Total Enrolments"
-
-value={formatNumber(summary.total_enrolments)}
-
-/>
-
-<KPICard
-
-label="Avg Saturation"
-
-value={`${summary.average_saturation.toFixed(1)}%`}
-
-/>
-
-<KPICard
-
-label="Risk Index"
-
-value={summary.national_risk_index.toFixed(1)}
-
-/>
-
-<KPICard
-
-label="High Risk"
-
-value={summary.high_risk_districts}
-
-/>
-
-</div>
-
-</div>
-
-);
-
+  return (
+    <div className="absolute bottom-4 left-4 bg-white/95 p-4 rounded-lg shadow-xl backdrop-blur-sm">
+      <div className="grid grid-cols-2 gap-4">
+        <KPICard 
+          label="Total Enrolments" 
+          value={formatNumber(summary.total_enrolments)} 
+        />
+        <KPICard 
+          label="Avg Saturation" 
+          value={`${summary.average_saturation.toFixed(1)}%`} 
+        />
+        <KPICard 
+          label="Risk Index" 
+          value={summary.national_risk_index.toFixed(1)} 
+        />
+        <KPICard 
+          label="High Risk" 
+          value={summary.high_risk_districts} 
+        />
+      </div>
+    </div>
+  );
 }
-
 ```
-
-  
 
 #### Visualization 3: District Detail Panel
 
@@ -1082,117 +818,60 @@ graph TB
 
 
 ```python
-
 # API Routes (FastAPI)
-
 from fastapi import APIRouter, Depends
-
 from sqlalchemy.orm import Session
-
 from sqlalchemy import func
-
-  
 
 router = APIRouter()
 
-  
-
 @router.get("/national/summary")
-
 def get_national_summary(db: Session = Depends(get_db)):
-
-"""Returns aggregated national statistics."""
-
-total_enrolments = db.query(func.sum(DistrictMetric.total_enrolments)).scalar() or 0
-
-avg_saturation = db.query(func.avg(DistrictMetric.asr)).scalar() or 0
-
-avg_risk = db.query(func.avg(DistrictMetric.risk_score)).scalar() or 0
-
-  
-
-high_risk_count = db.query(DistrictMetric).filter(
-
-(DistrictMetric.risk_level == 'High') |
-
-(DistrictMetric.risk_level == 'Priority')
-
-).count()
-
-  
-
-return {
-
-"total_enrolments": total_enrolments,
-
-"average_saturation": round(avg_saturation, 2),
-
-"national_risk_index": round(avg_risk, 2),
-
-"high_risk_districts": high_risk_count
-
-}
-
-  
+    """Returns aggregated national statistics."""
+    total_enrolments = db.query(func.sum(DistrictMetric.total_enrolments)).scalar() or 0
+    avg_saturation = db.query(func.avg(DistrictMetric.asr)).scalar() or 0
+    avg_risk = db.query(func.avg(DistrictMetric.risk_score)).scalar() or 0
+    
+    high_risk_count = db.query(DistrictMetric).filter(
+        (DistrictMetric.risk_level == 'High') | 
+        (DistrictMetric.risk_level == 'Priority')
+    ).count()
+    
+    return {
+        "total_enrolments": total_enrolments,
+        "average_saturation": round(avg_saturation, 2),
+        "national_risk_index": round(avg_risk, 2),
+        "high_risk_districts": high_risk_count
+    }
 
 @router.get("/map")
-
 def get_map_data(month: str = None, db: Session = Depends(get_db)):
-
-"""Returns district-level data for map visualization."""
-
-query = db.query(
-
-DistrictMetric.district,
-
-DistrictMetric.state,
-
-DistrictMetric.risk_score,
-
-DistrictMetric.risk_level,
-
-DistrictMetric.asr,
-
-DistrictMetric.uii,
-
-DistrictMetric.tds,
-
-DistrictMetric.aepg,
-
-DistrictMetric.cbcg
-
-)
-
-  
-
-if month:
-
-query = query.filter(DistrictMetric.month == month)
-
-  
-
-return [dict(r._mapping) for r in query.all()]
-
-  
+    """Returns district-level data for map visualization."""
+    query = db.query(
+        DistrictMetric.district,
+        DistrictMetric.state,
+        DistrictMetric.risk_score,
+        DistrictMetric.risk_level,
+        DistrictMetric.asr,
+        DistrictMetric.uii,
+        DistrictMetric.tds,
+        DistrictMetric.aepg,
+        DistrictMetric.cbcg
+    )
+    
+    if month:
+        query = query.filter(DistrictMetric.month == month)
+        
+    return [dict(r._mapping) for r in query.all()]
 
 @router.get("/risk/top")
-
 def get_top_risk_districts(limit: int = 10, db: Session = Depends(get_db)):
-
-"""Returns highest risk districts for triage."""
-
-return db.query(DistrictMetric)\
-
-.order_by(DistrictMetric.risk_score.desc())\
-
-.limit(limit)\
-
-.all()
-
+    """Returns highest risk districts for triage."""
+    return db.query(DistrictMetric)\
+             .order_by(DistrictMetric.risk_score.desc())\
+             .limit(limit)\
+             .all()
 ```
-
-
-
   
 
 ### 4.4 Database Schema
@@ -1223,63 +902,33 @@ graph LR
   
 
 ```python
-
 # SQLAlchemy Model
-
 from sqlalchemy import Column, Integer, String, Float
-
 from app.db.database import Base
 
-  
-
 class DistrictMetric(Base):
+    __tablename__ = "district_metrics"
 
-__tablename__ = "district_metrics"
+    id = Column(Integer, primary_key=True, index=True)
+    state = Column(String, index=True)
+    district = Column(String, index=True)
+    month = Column(String, index=True)  # YYYY-MM format
 
-  
+    # Raw data
+    population_estimate = Column(Integer)
+    total_enrolments = Column(Integer)
 
-id = Column(Integer, primary_key=True, index=True)
+    # Calculated metrics
+    asr = Column(Float)   # Aadhaar Saturation Ratio
+    uii = Column(Float)   # Update Intensity Index
+    tds = Column(Float)   # Temporal Deviation Score
+    cbcg = Column(Float)  # Child Biometric Compliance Gap
+    aepg = Column(Float)  # Aadhaar Equity Penetration Gap
 
-state = Column(String, index=True)
-
-district = Column(String, index=True)
-
-month = Column(String, index=True) # YYYY-MM format
-
-  
-
-# Raw data
-
-population_estimate = Column(Integer)
-
-total_enrolments = Column(Integer)
-
-  
-
-# Calculated metrics
-
-asr = Column(Float) # Aadhaar Saturation Ratio
-
-uii = Column(Float) # Update Intensity Index
-
-tds = Column(Float) # Temporal Deviation Score
-
-cbcg = Column(Float) # Child Biometric Compliance Gap
-
-aepg = Column(Float) # Aadhaar Equity Penetration Gap
-
-  
-
-# ML output
-
-risk_score = Column(Float) # Normalized 0-100
-
-risk_level = Column(String) # Low/Medium/High/Priority
-
+    # ML output
+    risk_score = Column(Float)   # Normalized 0-100
+    risk_level = Column(String)  # Low/Medium/High/Priority
 ```
-
-  
-
 ---
 
   
